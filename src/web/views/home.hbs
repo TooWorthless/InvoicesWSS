@@ -1,0 +1,167 @@
+<div id="messages"></div>
+
+<main>
+    <form id="dataForm">
+        <table id="myTable">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>$Price</th>
+                </tr>
+            </thead>
+            <tbody id="myTableBody">
+                <tr id="tr1">
+                    <td>
+                        <input type="text" id="description1" name="description" required>
+                    </td>
+                    <td>
+                        <input type="number" min="1" id="quantity1" name="quantity" required>
+                    </td>
+                    <td>
+                        <input type="number" min="1" id="price1" name="price" required>
+                        <div id="remove1" class="myBtn">-</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div id="add" class="myBtn">+</div>
+    </form>
+
+    
+    <div>
+        <button id="mySubmit" type="submit">Submit</button>
+        <button id="myReset" type="reset">Reset</button>
+    </div>
+</main>
+
+
+<script>
+
+    const socket = new WebSocket('ws://{{ip}}:{{port}}');
+
+    socket.onopen = function (event) {
+        console.log('Connection established');
+    };
+
+    socket.onmessage = function (event) {
+        const messagesDiv = document.getElementById('messages');
+        messagesDiv.innerHTML += '<p>' + event.data + '</p>';
+    };
+
+    socket.onclose = function (event) {
+        console.log('Connection closed');
+    };
+
+
+    let elems = {
+        '1': {
+            tr: document.getElementById('tr1'),
+            remove: document.getElementById('remove1')
+        }
+    };
+
+    let trCounter = 1;
+
+    const add = document.getElementById('add');
+    const table = document.getElementById('myTableBody');
+
+
+    add.addEventListener('click', async (event) => {
+        trCounter++;
+        const newElem = document.createElement('tr');
+        newElem.id = `tr${trCounter}`;
+
+        newElem.innerHTML = `<td>
+                        <input type="text" id="description${trCounter}" name="description" required>
+                    </td>
+                    <td>
+                        <input type="number" min="1" id="quantity${trCounter}" name="quantity" required>
+                    </td>`;
+        const newTdElem = document.createElement('td');
+        newTdElem.innerHTML = `<input type="number" min="1" id="price${trCounter}" name="price" required> `;
+
+        const newRemoveBtn = document.createElement('div');
+
+        newRemoveBtn.textContent = `-`;
+
+        newRemoveBtn.id = `remove${trCounter}`;
+        newRemoveBtn.className = 'myBtn';
+
+        newTdElem.appendChild(newRemoveBtn);
+
+        newElem.appendChild(newTdElem);
+        table.appendChild(newElem);
+
+        elems[trCounter.toString()] = {
+            tr: newElem,
+            remove: newRemoveBtn
+        }
+
+        newRemoveBtn.addEventListener('click', () => {
+            table.removeChild(newElem);
+            for(const elemKey in elems) {
+                if(elems[elemKey].tr === newElem) {
+                    delete elems[elemKey];
+                }
+            }
+        });
+    });
+
+
+
+    const submit = document.getElementById('mySubmit');
+
+    submit.addEventListener('click', () => {
+        const result = [];
+
+
+        for(const elemId in elems) {
+            const description = document.getElementById(`description${elemId}`).value;
+            const quantity = document.getElementById(`quantity${elemId}`).value;
+            const price = document.getElementById(`price${elemId}`).value;
+
+            if(description.length === 0 || quantity.length === 0 || price.length === 0) return;
+
+            result.push({
+                description,
+                quantity,
+                price
+            });
+        }
+
+        resetMyForm();
+        socket.send(JSON.stringify(result));
+    });
+
+
+    const reset = document.getElementById('myReset');
+    reset.addEventListener('click', () => {
+        resetMyForm();
+    });
+
+    function resetMyForm() {
+        const myForm = document.getElementById('dataForm');
+        myForm.reset();
+        table.innerHTML = `<tr id="tr1">
+            <td>
+                <input type="text" id="description1" name="description" required>
+            </td>
+            <td>
+                <input type="number" id="quantity1" name="quantity" required>
+            </td>
+            <td>
+                <input type="number" id="price1" name="price" required>
+                <div id="remove1" class="myBtn">-</div>
+            </td>
+        </tr>`;
+
+        elems = {
+            '1': {
+                tr: document.getElementById('tr1'),
+                remove: document.getElementById('remove1')
+            }
+        }
+    }
+
+</script>

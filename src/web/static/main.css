@@ -1,0 +1,64 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.myBtn {
+    display: inline-block;
+    border: 1px solid black;
+    background-color: rgb(230, 230, 230);
+    width: 20px;
+    text-align: center;
+}
+.myBtn:hover {
+    cursor: pointer;
+    background-color: rgb(247, 247, 247);
+}
+
+table {
+    border-spacing: 0;
+    margin: 5px 0;
+}
+
+
+td {
+    padding: 5px 0;
+}
+
+main {
+    padding: 20px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+#dataForm {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-bottom: 10px;
+}
+
+#mySubmit {
+    width: 70px;
+    padding: 5px 0;
+    border-radius: 4px;
+}
+#mySubmit:hover {
+    cursor: pointer;
+    background-color: rgb(247, 247, 247);
+}
+
+#myReset {
+    width: 70px;
+    padding: 5px 0;
+    border-radius: 4px;
+}
+#myReset:hover {
+    cursor: pointer;
+    background-color: rgb(247, 247, 247);
+}
+
+#remove1 {
+    visibility:hidden;
+}
