@@ -42,7 +42,7 @@ class AMQPHandler {
         }
 
         this.channel.publish(this.exchange, 'invoice', Buffer.from(data));
-        console.log(' [x] Sent %s', message);
+        console.log(' [x] Sent %s', data);
     }
 
 
