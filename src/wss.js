@@ -1,5 +1,6 @@
 import { WebSocketServer } from 'ws';
-import { amqpHandler } from './messageBroker/amqpHandler.js';
+import { AMQPHandler } from './messageBroker/amqpHandler.js';
+import { amqpService } from './messageBroker/amqpService.js';
 import { v4 as uuidv4 } from 'uuid';
 
 class WSS {
@@ -19,8 +20,13 @@ class WSS {
 
             this.#handleNewConnection(connectionId, ws);
 
-            ws.on('message', (invoice) => {
-                amqpHandler.publish(invoice.toString());
+            ws.on('message', (invoiceBuffer) => {
+                const invoice = JSON.parse(invoiceBuffer.toString());
+
+                amqpService.publish(JSON.stringify({
+                    invoice,
+                    connectionId: connectionId
+                }));
             });
 
             ws.on('close', () => {
@@ -33,7 +39,15 @@ class WSS {
 
     async #handleNewConnection(connectionId, ws) {
         try {
-            WSS.connections[connectionId] = { ws };
+            const amqpHandler = new AMQPHandler();
+            await amqpHandler.connect();
+            const queueName = await amqpHandler.createQueueAndBind(connectionId);
+    
+            WSS.connections[connectionId] = {
+                ws,
+                queueName,
+                amqpHandler
+            };
         } catch (error) {
             console.log('error.message handleNewConnection :>> ', error.stack);
         }

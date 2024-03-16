@@ -5,7 +5,7 @@ import { createServer } from 'http';
 
 import { logErrors, errorHandler } from './utils.js';
 import { WSS } from './wss.js';
-import { amqpHandler } from './messageBroker/amqpHandler.js';
+import { amqpService } from './messageBroker/amqpService.js';
 
 import dotenv from 'dotenv';
 dotenv.config();

@@ -38,6 +38,15 @@
 
 <script>
 
+    function getFormattedDate() {
+        var date = new Date();
+        var str = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +  date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+
+        return str;
+    }
+
+
+
     const socket = new WebSocket('ws://{{ip}}:{{port}}');
 
     socket.onopen = function (event) {
@@ -45,8 +54,16 @@
     };
 
     socket.onmessage = function (event) {
-        const messagesDiv = document.getElementById('messages');
-        messagesDiv.innerHTML += '<p>' + event.data + '</p>';
+        const fileData = event.data;
+        const blob = new Blob([fileData]);
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invoice ${getFormattedDate()}.pdf`;
+        a.click();
+
+        URL.revokeObjectURL(url);
     };
 
     socket.onclose = function (event) {

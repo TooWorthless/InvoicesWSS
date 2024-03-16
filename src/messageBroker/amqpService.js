@@ -6,12 +6,12 @@ dotenv.config();
 
 
 
-class AMQPHandler {
+class AMQPService {
 
     constructor() {
         this.connection = null;
         this.channel = null;
-        this.exchange = 'invoicesReceiving';
+        this.exchange = 'invoicesProcessing';
     }
 
 
@@ -29,7 +29,7 @@ class AMQPHandler {
                 this.exchange,
                 'direct', 
                 { durable: false }
-            );
+            )
 
         } catch (error) {
             console.error('Error connecting to AMQP :>> ', error.stack);
@@ -38,31 +38,13 @@ class AMQPHandler {
     }
 
 
-    async createQueueAndBind(queueKey) {
-        try {
-            const assertedQueue = await this.channel.assertQueue('', { exclusive: true });
-
-            await this.channel.bindQueue(assertedQueue.queue, this.exchange, queueKey);
-            
-            this.channel.consume(
-                assertedQueue.queue,
-                async (invoice) => {
-                    if (invoice.content) {
-                        for(const connectionId in WSS.connections) {
-                            if(WSS.connections[connectionId].queueName === assertedQueue.queue && WSS.connections[connectionId].ws.readyState === WebSocket.OPEN) {
-                                WSS.connections[connectionId].ws.send(invoice.content);
-                            }
-                        }
-                    }
-                },
-                { noAck: true }
-            );
-
-            return assertedQueue.queue;
-        } catch (error) {
-            console.error('Error creating queue and binding :>> ', error.stack);
-            throw error;
+    publish(data) {
+        if(!this.channel) {
+            throw new Error('Channel not initialized. Please call connect() first.');
         }
+
+        this.channel.publish(this.exchange, 'invoice', Buffer.from(data));
+        console.log(' [x] Sent %s', data);
     }
 
 
@@ -77,6 +59,10 @@ class AMQPHandler {
     
 }
 
+const amqpService = new AMQPService();
+await amqpService.connect();
+
+
 export {
-    AMQPHandler
+    amqpService
 };
